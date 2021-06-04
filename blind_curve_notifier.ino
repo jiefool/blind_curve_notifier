@@ -8,7 +8,7 @@
 //#define HARDWARE_TYPE MD_MAX72XX::GENERIC_HW
 
 // Defining size, and output pins
-#define MAX_DEVICES 4
+#define MAX_DEVICES 16
 #define CS_PIN 53
 
 // Create a new instance of the MD_Parola class with hardware SPI connection
@@ -16,6 +16,8 @@ MD_Parola myDisplay = MD_Parola(HARDWARE_TYPE, CS_PIN, MAX_DEVICES);
 
 boolean setOnce = false;
 boolean setOnceLow = false;
+long previousMillis = 0;
+boolean displayChange = true;
 
 void setup() {
   // Intialize the object
@@ -35,19 +37,28 @@ void setup() {
 
 void loop() {
 
+
+
   if(digitalRead(2) == HIGH){
+    displayChange = false;  
+    previousMillis = millis();
+ 
     if(!setOnce){
-        myDisplay.displayClear();
-       myDisplay.displayScroll("VEHICLE APPROACHING!!!", PA_CENTER, PA_SCROLL_LEFT, 100);
+       myDisplay.displayClear();
+       myDisplay.displayScroll("VEHICLE APPROACHING!!!", PA_CENTER, PA_SCROLL_LEFT, 50);
        setOnce = true;
        setOnceLow = false;
     }
   }else{
-    if(!setOnceLow){
-        myDisplay.displayClear();
-       myDisplay.displayScroll("SLOW DOWN!!!", PA_CENTER, PA_SCROLL_LEFT, 100);
+     if(millis() - previousMillis > 20000 && !displayChange){
+        displayChange = true;  
+     }
+     
+    if(!setOnceLow && displayChange){
+       myDisplay.displayClear();
+       myDisplay.displayScroll("SLOW DOWN!!!", PA_CENTER, PA_SCROLL_LEFT, 50);
        setOnceLow = true;
-         setOnce = false;
+       setOnce = false;
     }
   }
   
